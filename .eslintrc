@@ -1,0 +1,39 @@
+---
+  extends: openstack/es2015
+  parser: babel-eslint
+  plugins:
+    - react
+  parserOptions:
+    ecmaFeatures:
+      jsx: true
+  rules:
+    no-extra-parens: 0
+    no-process-env: 0
+    no-sync: 0
+    curly: [2, multi-line, consistent]
+    computed-property-spacing: 2
+    no-empty: [2, {allowEmptyCatch: true}]
+    operator-linebreak: [2, after, {overrides: {'?': ignore, ':': ignore}}]
+    object-shorthand: [2, methods]
+
+    jsx-quotes: [2, prefer-single]
+    react/jsx-boolean-value: [2, never]
+    react/jsx-closing-bracket-location: [2, {nonEmpty: false, selfClosing: line-aligned}]
+    react/jsx-curly-spacing: 2
+    react/jsx-equals-spacing: 2
+    react/jsx-indent: [2, 2]
+    react/jsx-indent-props: [2, 2]
+    react/jsx-key: 2
+    react/jsx-no-duplicate-props: 2
+    react/jsx-no-literals: 2
+    react/jsx-no-undef: 2
+    react/jsx-pascal-case: 2
+    react/jsx-space-before-closing: 2
+    react/jsx-uses-react: 2
+    react/jsx-uses-vars: 2
+    react/no-deprecated: 2
+    react/no-unknown-property: 2
+    react/prefer-es6-class: 2
+    react/react-in-jsx-scope: 2
+    react/require-render-return: 2
+    react/self-closing-comp: 2
