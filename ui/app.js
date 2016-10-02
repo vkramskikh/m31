@@ -3,7 +3,7 @@ import './styles/main.less';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
-import {difference, memoize, sortBy} from 'lodash';
+import {difference, intersection, isEqual, pick, memoize, sortBy} from 'lodash';
 
 const parseTime = memoize((time) => Number(moment(time, 'ddd MMM DD HH:mm:ss z YYYY')));
 
@@ -45,16 +45,18 @@ class DiffList extends React.Component {
   static defaultProps = {columns}
 
   render() {
-    const {timeStart, timeEnd, dataStart, dataEnd} = this.props;
-    console.log(dataStart);
+    const {columns, timeStart, timeEnd, dataStart, dataEnd} = this.props;
     const dataStartKeys = Object.keys(dataStart);
     const dataEndKeys = Object.keys(dataEnd);
     const removedKeys = difference(dataStartKeys, dataEndKeys);
     const addedKeys = difference(dataEndKeys, dataStartKeys);
+    const changedKeys = intersection(dataStartKeys, dataEndKeys).filter((key) => {
+      return !isEqual(pick(dataStart[key], columns), pick(dataEnd[key], columns));
+    });
     return (
       <tbody>
-        <tr>
-          <td colSpan={this.props.columns.length}>
+        <tr key='header'>
+          <td colSpan={columns.length}>
             <h3>{timeStart}{' → '}{timeEnd}</h3>
           </td>
         </tr>
@@ -62,14 +64,22 @@ class DiffList extends React.Component {
           return <DiffEntry
             key={key}
             mode='remove'
-            data={dataStart[key]}
+            dataStart={dataStart[key]}
           />;
         })}
         {addedKeys.map((key) => {
           return <DiffEntry
             key={key}
             mode='add'
-            data={dataEnd[key]}
+            dataEnd={dataEnd[key]}
+          />;
+        })}
+        {changedKeys.map((key) => {
+          return <DiffEntry
+            key={key}
+            mode='diff'
+            dataStart={dataStart[key]}
+            dataEnd={dataEnd[key]}
           />;
         })}
       </tbody>
@@ -81,12 +91,24 @@ class DiffEntry extends React.Component {
   static defaultProps = {columns, mode: 'diff'}
 
   render() {
-    const {columns, mode, data} = this.props;
+    const {columns, mode, dataStart, dataEnd} = this.props;
     const className = {remove: 'danger', add: 'success'}[mode] || null;
     return (
       <tr className={className}>
         {columns.map((column) => {
-          return <td key={column}>{data[column]}</td>;
+          return <td key={column}>{
+            mode === 'add' ?
+              dataEnd[column]
+            : mode === 'remove' ?
+              dataStart[column]
+            : dataStart[column] === dataEnd[column] ?
+              dataStart[column]
+            :
+              [
+                <div key='removed' className='diff-removed'>{dataStart[column]}</div>,
+                <div key='added' className='diff-added'>{dataEnd[column]}</div>
+              ]
+          }</td>;
         })}
       </tr>
     );
