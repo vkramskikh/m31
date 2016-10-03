@@ -29,6 +29,8 @@ let devServerConfig = {
     assets: false,
     chunks: false
   },
+  historyApiFallback: true,
+  compress: true,
   setup: (app) => {
     app.get('/data', dataHander(dataDir));
   }
