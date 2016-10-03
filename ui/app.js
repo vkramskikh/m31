@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Router, Route, IndexRoute, Redirect, Link, browserHistory} from 'react-router';
 import moment from 'moment';
-import {difference, intersection, isEqual, pick, memoize, sortBy} from 'lodash';
+import {difference, intersection, isEqual, pick, find, memoize, sortBy} from 'lodash';
 
 const parseTime = memoize((time) => Number(moment(time, 'ddd MMM DD HH:mm:ss z YYYY')));
 
@@ -159,10 +159,31 @@ class DiffEntry extends React.Component {
 
 class TreeView extends React.Component {
   render() {
+    const {data, params} = this.props;
+    const {time} = params;
+    const treeData = data[time];
+    const treeRootId = find(treeData, 'isRootManager').id;
     return (
       <div>
-        <h3>{this.props.params.time}</h3>
-        {'TBD'}
+        <h3>{params.time}</h3>
+        <TreeNode id={treeRootId} data={treeData} />
+      </div>
+    );
+  }
+}
+
+class TreeNode extends React.Component {
+  render() {
+    const {id, data} = this.props;
+    const nodeData = data[id];
+    return (
+      <div>
+        <div className='well'>{id}</div>
+        <div className='reports'>
+          {(nodeData.reports || []).map((reportId) => {
+            return <TreeNode key={reportId} id={reportId} data={data} />;
+          })}
+        </div>
       </div>
     );
   }
