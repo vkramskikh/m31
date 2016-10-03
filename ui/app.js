@@ -8,21 +8,39 @@ import {difference, intersection, isEqual, pick, memoize, sortBy} from 'lodash';
 
 const parseTime = memoize((time) => Number(moment(time, 'ddd MMM DD HH:mm:ss z YYYY')));
 
-let store = {data: null};
-
 class App extends React.Component {
-  static defaultProps = {store}
+  state = {}
+
+  constructor() {
+    super();
+    this.fetchData();
+  }
+
+  async fetchData() {
+    const response = await fetch('/data');
+    const data = await response.json();
+    this.setState({data});
+  }
 
   render() {
-    return (
-      <div>
-        <Link to='/'><h1>{'m31'}</h1></Link>
-        {React.cloneElement(
-          React.Children.only(this.props.children),
-          {data: this.props.store.data}
-        )}
-      </div>
-    );
+    const {data} = this.state;
+    if (!data) {
+      return (
+        <div className='progress' style={{marginTop: '50px'}}>
+          <div className='progress-bar progress-bar-striped active' style={{width: '100%'}} />
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <Link to='/'><h1>{'m31'}</h1></Link>
+          {React.cloneElement(
+            React.Children.only(this.props.children),
+            {data}
+          )}
+        </div>
+      );
+    }
   }
 }
 
@@ -150,17 +168,13 @@ class TreeView extends React.Component {
   }
 }
 
-(async () => {
-  const response = await fetch('/data');
-  store.data = await response.json();
-  ReactDOM.render(
-    <Router history={browserHistory}>
-      <Route path='/' component={App}>
-        <IndexRoute component={Dashboard} />
-        <Route path='tree/:time' component={TreeView} />
-        <Redirect from='*' to='/' />
-      </Route>
-    </Router>,
-    document.getElementById('container')
-  );
-})();
+ReactDOM.render(
+  <Router history={browserHistory}>
+    <Route path='/' component={App}>
+      <IndexRoute component={Dashboard} />
+      <Route path='tree/:time' component={TreeView} />
+      <Redirect from='*' to='/' />
+    </Route>
+  </Router>,
+  document.getElementById('container')
+);
