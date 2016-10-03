@@ -2,12 +2,38 @@ import './styles/main.less';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Router, Route, IndexRoute, Redirect, Link, browserHistory} from 'react-router';
 import moment from 'moment';
 import {difference, intersection, isEqual, pick, memoize, sortBy} from 'lodash';
 
 const parseTime = memoize((time) => Number(moment(time, 'ddd MMM DD HH:mm:ss z YYYY')));
 
+let store = {data: null};
+
+const columns = [
+  'id', 'fullName', 'managerId', 'location', 'department',
+  'gradeType', 'position', 'category', 'jobDescription'
+];
+
 class App extends React.Component {
+  static defaultProps = {store}
+
+  render() {
+    return (
+      <div>
+        <Link to='/'><h1>{'m31'}</h1></Link>
+        {React.cloneElement(
+          React.Children.only(this.props.children),
+          {data: this.props.store.data}
+        )}
+      </div>
+    );
+  }
+}
+
+class Dashboard extends React.Component {
+  static defaultProps = {store}
+
   render() {
     const {data} = this.props;
     const sortedDataCollectionTimes = sortBy(Object.keys(data), parseTime);
@@ -18,28 +44,20 @@ class App extends React.Component {
       return result;
     }, []);
     return (
-      <div>
-        <h1>{'m31'}</h1>
-        <table className='table'>
-          {dataCollectionTimesByPairs.map(([timeStart, timeEnd]) => {
-            return <DiffList
-              key={timeStart}
-              timeStart={timeStart}
-              timeEnd={timeEnd}
-              dataStart={data[timeStart]}
-              dataEnd={data[timeEnd]}
-            />;
-          })}
-        </table>
-      </div>
+      <table className='table'>
+        {dataCollectionTimesByPairs.map(([timeStart, timeEnd]) => {
+          return <DiffList
+            key={timeStart}
+            timeStart={timeStart}
+            timeEnd={timeEnd}
+            dataStart={data[timeStart]}
+            dataEnd={data[timeEnd]}
+          />;
+        })}
+      </table>
     );
   }
 }
-
-const columns = [
-  'id', 'fullName', 'managerId', 'location', 'department',
-  'gradeType', 'position', 'category', 'jobDescription'
-];
 
 class DiffList extends React.Component {
   static defaultProps = {columns}
@@ -57,7 +75,11 @@ class DiffList extends React.Component {
       <tbody>
         <tr key='header'>
           <td colSpan={columns.length}>
-            <h3>{timeStart}{' → '}{timeEnd}</h3>
+            <h3>
+              <Link to={'tree/' + timeStart}>{timeStart}</Link>
+              {' → '}
+              <Link to={'tree/' + timeEnd}>{timeEnd}</Link>
+            </h3>
           </td>
         </tr>
         {removedKeys.map((key) => {
@@ -115,11 +137,28 @@ class DiffEntry extends React.Component {
   }
 }
 
+class TreeView extends React.Component {
+  render() {
+    return (
+      <div>
+        <h3>{this.props.params.time}</h3>
+        {'TBD'}
+      </div>
+    );
+  }
+}
+
 (async () => {
   const response = await fetch('/data');
-  const data = await response.json();
+  store.data = await response.json();
   ReactDOM.render(
-    <App data={data} />,
+    <Router history={browserHistory}>
+      <Route path='/' component={App}>
+        <IndexRoute component={Dashboard} />
+        <Route path='tree/:time' component={TreeView} />
+        <Redirect from='*' to='/' />
+      </Route>
+    </Router>,
     document.getElementById('container')
   );
 })();
