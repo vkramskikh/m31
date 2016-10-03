@@ -10,11 +10,6 @@ const parseTime = memoize((time) => Number(moment(time, 'ddd MMM DD HH:mm:ss z Y
 
 let store = {data: null};
 
-const columns = [
-  'id', 'fullName', 'managerId', 'location', 'department',
-  'gradeType', 'position', 'category', 'jobDescription'
-];
-
 class App extends React.Component {
   static defaultProps = {store}
 
@@ -32,10 +27,15 @@ class App extends React.Component {
 }
 
 class Dashboard extends React.Component {
-  static defaultProps = {store}
+  static defaultProps = {
+    columns: [
+      'id', 'fullName', 'managerId', 'location', 'department',
+      'gradeType', 'position', 'category', 'jobDescription'
+    ]
+  }
 
   render() {
-    const {data} = this.props;
+    const {data, columns} = this.props;
     const sortedDataCollectionTimes = sortBy(Object.keys(data), parseTime);
     const dataCollectionTimesByPairs = sortedDataCollectionTimes.reduce((result, value, index) => {
       if (index + 1 < sortedDataCollectionTimes.length) {
@@ -48,6 +48,7 @@ class Dashboard extends React.Component {
         {dataCollectionTimesByPairs.map(([timeStart, timeEnd]) => {
           return <DiffList
             key={timeStart}
+            columns={columns}
             timeStart={timeStart}
             timeEnd={timeEnd}
             dataStart={data[timeStart]}
@@ -60,8 +61,6 @@ class Dashboard extends React.Component {
 }
 
 class DiffList extends React.Component {
-  static defaultProps = {columns}
-
   render() {
     const {columns, timeStart, timeEnd, dataStart, dataEnd} = this.props;
     const dataStartKeys = Object.keys(dataStart);
@@ -86,6 +85,7 @@ class DiffList extends React.Component {
           return <DiffEntry
             key={key}
             mode='remove'
+            columns={columns}
             dataStart={dataStart[key]}
           />;
         })}
@@ -93,6 +93,7 @@ class DiffList extends React.Component {
           return <DiffEntry
             key={key}
             mode='add'
+            columns={columns}
             dataEnd={dataEnd[key]}
           />;
         })}
@@ -100,6 +101,7 @@ class DiffList extends React.Component {
           return <DiffEntry
             key={key}
             mode='diff'
+            columns={columns}
             dataStart={dataStart[key]}
             dataEnd={dataEnd[key]}
           />;
@@ -110,7 +112,7 @@ class DiffList extends React.Component {
 }
 
 class DiffEntry extends React.Component {
-  static defaultProps = {columns, mode: 'diff'}
+  static defaultProps = {mode: 'diff'}
 
   render() {
     const {columns, mode, dataStart, dataEnd} = this.props;
