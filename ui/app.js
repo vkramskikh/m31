@@ -191,9 +191,17 @@ class TreeViewPage extends React.Component {
 }
 
 class Tree extends React.Component {
-  state = {
-    expandedNodes: {
-      [this.props.rootId]: true
+  constructor(props) {
+    super();
+    const {data, rootId, highlightedId} = props;
+    this.state = {expandedNodes: {[rootId]: true}};
+    if (highlightedId) {
+      let currentId = highlightedId;
+      for (;;) {
+        currentId = data[currentId].managerId;
+        if (!currentId) break;
+        this.state.expandedNodes[currentId] = true;
+      }
     }
   }
 
