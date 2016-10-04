@@ -18,16 +18,26 @@
   .info {
     .well;
     height: 59px;
+    i {
+      .glyphicon;
+      .glyphicon-minus;
+      visibility: hidden;
+      padding-right: 5px;
+    }
     &.expandable {
       cursor: pointer;
       i {
-        .glyphicon;
+        visibility: visible;
         .glyphicon-chevron-right;
-        padding-right: 5px;
       }
       &.expanded i {
         .glyphicon-chevron-down;
       }
+    }
+    &.highlighted {
+      background-color: @state-success-bg;
+      border-color: @state-success-border;
+      color: @state-success-text;
     }
     h4 {
       padding: 19px 0;

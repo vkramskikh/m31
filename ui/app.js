@@ -177,13 +177,14 @@ class DiffEntry extends React.Component {
 class TreeViewPage extends React.Component {
   render() {
     const {data, params} = this.props;
-    const {time} = params;
+    const {time, highlight} = params;
     const treeData = data[time];
-    const treeRootId = find(treeData, 'isRootManager').id;
+    const rootId = find(treeData, 'isRootManager').id;
+    const highlightedId = highlight in treeData ? highlight : null;
     return (
       <div>
         <h3>{params.time}</h3>
-        <Tree treeRootId={treeRootId} data={treeData} />
+        <Tree rootId={rootId} highlightedId={highlightedId} data={treeData} />
       </div>
     );
   }
@@ -192,7 +193,7 @@ class TreeViewPage extends React.Component {
 class Tree extends React.Component {
   state = {
     expandedNodes: {
-      [this.props.treeRootId]: true
+      [this.props.rootId]: true
     }
   }
 
@@ -207,17 +208,18 @@ class Tree extends React.Component {
 
   render() {
     return <TreeNode
-      id={this.props.treeRootId}
+      id={this.props.rootId}
       data={this.props.data}
       expandedNodes={this.state.expandedNodes}
       toggleNode={this.toggleNode}
+      highlightedId={this.props.highlightedId}
     />;
   }
 }
 
 class TreeNode extends React.Component {
   render() {
-    const {id, data, expandedNodes} = this.props;
+    const {id, data, highlightedId, expandedNodes} = this.props;
     const nodeData = data[id];
     const reports = nodeData.reports || [];
     return (
@@ -226,7 +228,8 @@ class TreeNode extends React.Component {
           className={cx({
             info: true,
             expandable: reports.length,
-            expanded: expandedNodes[id]
+            expanded: expandedNodes[id],
+            highlighted: highlightedId === id
           })}
           onClick={() => this.props.toggleNode(id)}
         >
