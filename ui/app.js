@@ -47,10 +47,7 @@ class App extends React.Component {
 
 class DashboardPage extends React.Component {
   static defaultProps = {
-    columns: [
-      'id', 'fullName', 'managerId', 'location', 'department',
-      'gradeType', 'position', 'category', 'jobDescription'
-    ]
+    columns: ['id', 'managerId', 'location', 'department', 'gradeType', 'position', 'category']
   }
 
   render() {
@@ -80,6 +77,14 @@ class DashboardPage extends React.Component {
 }
 
 class DiffList extends React.Component {
+  renderColumn = (column, data) => {
+    let result = data[column];
+    if (result !== null && column.match(/id$/i)) {
+      result = (this.props.dataStart[result] || this.props.dataEnd[result] || {}).fullName || null;
+    }
+    return result;
+  }
+
   render() {
     const {columns, timeStart, timeEnd, dataStart, dataEnd} = this.props;
     const dataStartKeys = Object.keys(dataStart);
@@ -105,6 +110,7 @@ class DiffList extends React.Component {
             key={key}
             mode='remove'
             columns={columns}
+            renderColumn={this.renderColumn}
             dataStart={dataStart[key]}
           />;
         })}
@@ -113,6 +119,7 @@ class DiffList extends React.Component {
             key={key}
             mode='add'
             columns={columns}
+            renderColumn={this.renderColumn}
             dataEnd={dataEnd[key]}
           />;
         })}
@@ -121,6 +128,7 @@ class DiffList extends React.Component {
             key={key}
             mode='diff'
             columns={columns}
+            renderColumn={this.renderColumn}
             dataStart={dataStart[key]}
             dataEnd={dataEnd[key]}
           />;
@@ -134,22 +142,24 @@ class DiffEntry extends React.Component {
   static defaultProps = {mode: 'diff'}
 
   render() {
-    const {columns, mode, dataStart, dataEnd} = this.props;
+    const {columns, renderColumn, mode, dataStart, dataEnd} = this.props;
     const className = {remove: 'danger', add: 'success'}[mode] || null;
     return (
       <tr className={className}>
         {columns.map((column) => {
           return <td key={column}>{
             mode === 'add' ?
-              dataEnd[column]
-            : mode === 'remove' ?
-              dataStart[column]
-            : dataStart[column] === dataEnd[column] ?
-              dataStart[column]
+              renderColumn(column, dataEnd)
+            : mode === 'remove' || dataStart[column] === dataEnd[column] ?
+              renderColumn(column, dataStart)
             :
               [
-                <div key='removed' className='diff-removed'>{dataStart[column]}</div>,
-                <div key='added' className='diff-added'>{dataEnd[column]}</div>
+                <div key='removed' className='diff-removed'>
+                  {renderColumn(column, dataStart)}
+                </div>,
+                <div key='added' className='diff-added'>
+                  {renderColumn(column, dataEnd)}
+                </div>
               ]
           }</td>;
         })}
