@@ -1,7 +1,10 @@
 import path from 'path';
 
 export default {
-  entry: ['./ui/app.js'],
+  entry: [
+    'whatwg-fetch',
+    './ui/app.js'
+  ],
   output: {
     path: path.join(__dirname, '/build/'),
     publicPath: '/',
