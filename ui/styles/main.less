@@ -8,6 +8,32 @@
   background-color: @state-danger-bg;
 }
 
-.reports {
-  padding-left: 20px;
+.node {
+  .info {
+    .well;
+    height: 59px;
+    &.expandable {
+      cursor: pointer;
+      i {
+        .glyphicon;
+        .glyphicon-chevron-right;
+        padding-right: 5px;
+      }
+      &.expanded i {
+        .glyphicon-chevron-down;
+      }
+    }
+    h4 {
+      padding: 19px 0;
+      display: inline;
+    }
+    span {
+      .pull-right;
+      vertical-align: middle;
+      width: 250px;
+    }
+  }
+  .reports {
+    padding-left: 20px;
+  }
 }

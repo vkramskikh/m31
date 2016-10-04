@@ -4,7 +4,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Router, Route, IndexRoute, Redirect, Link, browserHistory} from 'react-router';
 import moment from 'moment';
-import {difference, intersection, isEqual, pick, find, memoize, sortBy} from 'lodash';
+import {difference, intersection, isEqual, pick, omit, find, memoize, sortBy} from 'lodash';
+import cx from 'classnames';
 
 const parseTime = memoize((time) => Number(moment(time, 'ddd MMM DD HH:mm:ss z YYYY')));
 
@@ -44,7 +45,7 @@ class App extends React.Component {
   }
 }
 
-class Dashboard extends React.Component {
+class DashboardPage extends React.Component {
   static defaultProps = {
     columns: [
       'id', 'fullName', 'managerId', 'location', 'department',
@@ -157,7 +158,7 @@ class DiffEntry extends React.Component {
   }
 }
 
-class TreeView extends React.Component {
+class TreeViewPage extends React.Component {
   render() {
     const {data, params} = this.props;
     const {time} = params;
@@ -166,24 +167,69 @@ class TreeView extends React.Component {
     return (
       <div>
         <h3>{params.time}</h3>
-        <TreeNode id={treeRootId} data={treeData} />
+        <Tree treeRootId={treeRootId} data={treeData} />
       </div>
     );
   }
 }
 
+class Tree extends React.Component {
+  state = {
+    expandedNodes: {
+      [this.props.treeRootId]: true
+    }
+  }
+
+  toggleNode = (nodeId) => {
+    const nodeVisible = this.state.expandedNodes[nodeId];
+    if (nodeVisible) {
+      this.setState({expandedNodes: omit(this.state.expandedNodes, nodeId)});
+    } else {
+      this.setState({expandedNodes: {...this.state.expandedNodes, [nodeId]: true}});
+    }
+  }
+
+  render() {
+    return <TreeNode
+      id={this.props.treeRootId}
+      data={this.props.data}
+      expandedNodes={this.state.expandedNodes}
+      toggleNode={this.toggleNode}
+    />;
+  }
+}
+
 class TreeNode extends React.Component {
   render() {
-    const {id, data} = this.props;
+    const {id, data, expandedNodes} = this.props;
     const nodeData = data[id];
+    const reports = nodeData.reports || [];
     return (
-      <div>
-        <div className='well'>{id}</div>
-        <div className='reports'>
-          {(nodeData.reports || []).map((reportId) => {
-            return <TreeNode key={reportId} id={reportId} data={data} />;
+      <div className='node'>
+        <div
+          className={cx({
+            info: true,
+            expandable: reports.length,
+            expanded: expandedNodes[id]
           })}
+          onClick={() => this.props.toggleNode(id)}
+        >
+          <i />
+          <h4>{nodeData.fullName}</h4>
+          <span>{nodeData.position}</span>
+          <span>{nodeData.location}</span>
         </div>
+        {expandedNodes[id] && !!reports.length &&
+          <div className='reports'>
+            {reports.map((reportId) => {
+              return <TreeNode
+                key={reportId}
+                {...this.props}
+                id={reportId}
+              />;
+            })}
+          </div>
+        }
       </div>
     );
   }
@@ -192,8 +238,8 @@ class TreeNode extends React.Component {
 ReactDOM.render(
   <Router history={browserHistory}>
     <Route path='/' component={App}>
-      <IndexRoute component={Dashboard} />
-      <Route path='tree/:time' component={TreeView} />
+      <IndexRoute component={DashboardPage} />
+      <Route path='tree/:time' component={TreeViewPage} />
       <Redirect from='*' to='/' />
     </Route>
   </Router>,
