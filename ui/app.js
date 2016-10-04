@@ -77,10 +77,13 @@ class DashboardPage extends React.Component {
 }
 
 class DiffList extends React.Component {
-  renderColumn = (column, data) => {
+  renderColumn = (column, data, source) => {
     let result = data[column];
     if (result !== null && column.match(/id$/i)) {
-      result = (this.props.dataStart[result] || this.props.dataEnd[result] || {}).fullName || null;
+      result = <Link
+        to={'/tree/' + this.props['time' + source] + '/' + result}
+        children={this.props['data' + source][result].fullName}
+      />;
     }
     return result;
   }
@@ -99,9 +102,9 @@ class DiffList extends React.Component {
         <tr key='header'>
           <td colSpan={columns.length}>
             <h3>
-              <Link to={'tree/' + timeStart}>{timeStart}</Link>
+              <Link to={'/tree/' + timeStart}>{timeStart}</Link>
               {' → '}
-              <Link to={'tree/' + timeEnd}>{timeEnd}</Link>
+              <Link to={'/tree/' + timeEnd}>{timeEnd}</Link>
             </h3>
           </td>
         </tr>
@@ -138,6 +141,9 @@ class DiffList extends React.Component {
   }
 }
 
+const SOURCE_START = 'Start';
+const SOURCE_END = 'End';
+
 class DiffEntry extends React.Component {
   static defaultProps = {mode: 'diff'}
 
@@ -149,16 +155,16 @@ class DiffEntry extends React.Component {
         {columns.map((column) => {
           return <td key={column}>{
             mode === 'add' ?
-              renderColumn(column, dataEnd)
+              renderColumn(column, dataEnd, SOURCE_END)
             : mode === 'remove' || dataStart[column] === dataEnd[column] ?
-              renderColumn(column, dataStart)
+              renderColumn(column, dataStart, SOURCE_START)
             :
               [
                 <div key='removed' className='diff-removed'>
-                  {renderColumn(column, dataStart)}
+                  {renderColumn(column, dataStart, SOURCE_START)}
                 </div>,
                 <div key='added' className='diff-added'>
-                  {renderColumn(column, dataEnd)}
+                  {renderColumn(column, dataEnd, SOURCE_END)}
                 </div>
               ]
           }</td>;
@@ -249,7 +255,7 @@ ReactDOM.render(
   <Router history={browserHistory}>
     <Route path='/' component={App}>
       <IndexRoute component={DashboardPage} />
-      <Route path='tree/:time' component={TreeViewPage} />
+      <Route path='tree/:time(/:highlight)' component={TreeViewPage} />
       <Redirect from='*' to='/' />
     </Route>
   </Router>,
