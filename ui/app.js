@@ -61,6 +61,9 @@ class DashboardPage extends React.Component {
     }, []);
     return (
       <table className='table'>
+        <thead>
+          {columns.map((column) => <th key={column}>{column}</th>)}
+        </thead>
         {dataCollectionTimesByPairs.map(([timeStart, timeEnd]) => {
           return <DiffList
             key={timeStart}
@@ -136,6 +139,13 @@ class DiffList extends React.Component {
             dataEnd={dataEnd[key]}
           />;
         })}
+        {[removedKeys, addedKeys, changedKeys].every((keysList) => !keysList.length) &&
+          <tr key='empty'>
+            <td colSpan={columns.length}>
+              {'No changes'}
+            </td>
+          </tr>
+        }
       </tbody>
     );
   }
