@@ -166,8 +166,10 @@ class DiffEntry extends React.Component {
           return <td key={column}>{
             mode === 'add' ?
               renderColumn(column, dataEnd, SOURCE_END)
-            : mode === 'remove' || dataStart[column] === dataEnd[column] ?
+            : mode === 'remove' ?
               renderColumn(column, dataStart, SOURCE_START)
+            : dataStart[column] === dataEnd[column] ?
+              renderColumn(column, dataStart, SOURCE_END)
             :
               [
                 <div key='removed' className='diff-removed'>
