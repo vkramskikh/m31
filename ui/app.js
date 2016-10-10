@@ -2,12 +2,23 @@ import './styles/main.less';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {createStore, combineReducers} from 'redux';
+import {Provider} from 'react-redux';
 import {Router, Route, IndexRoute, Redirect, Link, browserHistory} from 'react-router';
+import {syncHistoryWithStore, routerReducer} from 'react-router-redux';
 import moment from 'moment';
 import {difference, intersection, isEqual, pick, omit, find, memoize, sortBy} from 'lodash';
 import cx from 'classnames';
 
 const parseTime = memoize((time) => Number(moment(time, 'ddd MMM DD HH:mm:ss z YYYY')));
+
+const store = createStore(
+  combineReducers({
+    routing: routerReducer
+  })
+);
+
+const history = syncHistoryWithStore(browserHistory, store);
 
 class App extends React.Component {
   state = {}
@@ -62,7 +73,9 @@ class DashboardPage extends React.Component {
     return (
       <table className='table'>
         <thead>
-          {columns.map((column) => <th key={column}>{column}</th>)}
+          <tr>
+            {columns.map((column) => <th key={column}>{column}</th>)}
+          </tr>
         </thead>
         {dataCollectionTimesByPairs.map(([timeStart, timeEnd]) => {
           return <DiffList
@@ -275,12 +288,14 @@ class TreeNode extends React.Component {
 }
 
 ReactDOM.render(
-  <Router history={browserHistory}>
-    <Route path='/' component={App}>
-      <IndexRoute component={DashboardPage} />
-      <Route path='tree/:time(/:highlight)' component={TreeViewPage} />
-      <Redirect from='*' to='/' />
-    </Route>
-  </Router>,
+  <Provider store={store}>
+    <Router history={history}>
+      <Route path='/' component={App}>
+        <IndexRoute component={DashboardPage} />
+        <Route path='tree/:time(/:highlight)' component={TreeViewPage} />
+        <Redirect from='*' to='/' />
+      </Route>
+    </Router>
+  </Provider>,
   document.getElementById('container')
 );
