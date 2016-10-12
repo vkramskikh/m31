@@ -2,40 +2,45 @@ import './styles/main.less';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {createStore, combineReducers} from 'redux';
-import {Provider} from 'react-redux';
+import {applyMiddleware, createStore, combineReducers} from 'redux';
+import {connect, Provider} from 'react-redux';
 import {Router, Route, IndexRoute, Redirect, Link, browserHistory} from 'react-router';
 import {syncHistoryWithStore, routerReducer} from 'react-router-redux';
+import promiseMiddleware from 'redux-promise';
+import {createAction, handleAction} from 'redux-actions';
+
 import moment from 'moment';
 import {difference, intersection, isEqual, pick, omit, find, memoize, sortBy} from 'lodash';
 import cx from 'classnames';
 
 const parseTime = memoize((time) => Number(moment(time, 'ddd MMM DD HH:mm:ss z YYYY')));
 
+const FETCH_DATA = 'FETCH_DATA';
+const fetchData = createAction(FETCH_DATA, async () => {
+  const response = await fetch('/data');
+  return await response.json();
+});
+const dataReducer = handleAction(FETCH_DATA, (state, action) => action.payload, null);
+
 const store = createStore(
   combineReducers({
-    routing: routerReducer
-  })
+    routing: routerReducer,
+    data: dataReducer
+  }),
+  applyMiddleware(promiseMiddleware)
 );
 
 const history = syncHistoryWithStore(browserHistory, store);
 
 class App extends React.Component {
-  state = {}
+  static mapStateToProps = ({data}) => ({data})
 
-  constructor() {
-    super();
-    this.fetchData();
-  }
-
-  async fetchData() {
-    const response = await fetch('/data');
-    const data = await response.json();
-    this.setState({data});
+  componentDidMount() {
+    this.props.dispatch(fetchData());
   }
 
   render() {
-    const {data} = this.state;
+    const {data} = this.props;
     if (!data) {
       return (
         <div className='progress' style={{marginTop: '50px'}}>
@@ -290,7 +295,7 @@ class TreeNode extends React.Component {
 ReactDOM.render(
   <Provider store={store}>
     <Router history={history}>
-      <Route path='/' component={App}>
+      <Route path='/' component={connect(App.mapStateToProps)(App)}>
         <IndexRoute component={DashboardPage} />
         <Route path='tree/:time(/:highlight)' component={TreeViewPage} />
         <Redirect from='*' to='/' />
