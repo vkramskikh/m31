@@ -14,14 +14,18 @@ let serverHost = argv.host || '127.0.0.1';
 let serverPort = argv.port || 8888;
 let serverUrl = `http://${serverHost}:${serverPort}/`;
 
-webpackConfig.entry.push('webpack-dev-server/client?' + serverUrl);
-webpackConfig.entry.push('webpack/hot/dev-server');
-webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
-webpackConfig.plugins.push(new webpack.NoErrorsPlugin());
+const development = process.env.NODE_ENV !== 'production';
+
+if (development) {
+  webpackConfig.entry.push('webpack-dev-server/client?' + serverUrl);
+  webpackConfig.entry.push('webpack/hot/dev-server');
+  webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
+  webpackConfig.plugins.push(new webpack.NoErrorsPlugin());
+}
 
 let devServerConfig = {
   contentBase: 'ui',
-  hot: true,
+  hot: development,
   stats: {
     colors: true,
     hash: false,
