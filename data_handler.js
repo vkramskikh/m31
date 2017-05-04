@@ -16,13 +16,21 @@ export default function dataHander(dataDir) {
           }
           return result;
         }, []);
+        let filesSent = 0;
         res.write('{');
-        res.write(dataFiles.map(({fileName, key}) => {
-          const fileContent = fs.readFileSync(fileName);
-          return JSON.stringify(key) + ':' + fileContent;
-        }, []).join(','));
-        res.write('}');
-        res.end();
+        dataFiles.forEach(({fileName, key}) => {
+          fs.readFile(fileName, (err, fileContent) => {
+            if (!err) {
+              if (filesSent) res.write(',');
+              res.write(JSON.stringify(key) + ':' + fileContent);
+            }
+            filesSent++;
+            if (filesSent === dataFiles.length) {
+              res.write('}');
+              res.end();
+            }
+          });
+        });
       } else {
         res.status(500).send('Failed to read data directory');
       }
